@@ -41,29 +41,38 @@ const initializeGoogleSheets = async () => {
   }
 }
 
-// Get all exercises from the "Exercises" sheet
-export const getExercises = async (): Promise<ExerciseData[]> => {
+// Get all exercises from the user-specific sheet
+export const getExercises = async (userId: string): Promise<ExerciseData[]> => {
   try {
     const doc = await initializeGoogleSheets()
+    
+    const sheetName = `${userId}Exercises`
+    let sheet = doc.sheetsByTitle[sheetName]
 
-    // Check if the "Exercises" sheet exists
-    let sheet = doc.sheetsByTitle["Exercises"]
+    const progressSheetName = `${userId}Progress`
+    let progressSheet = doc.sheetsByTitle[progressSheetName]
 
     // If the sheet doesn't exist, create it with headers
-    if (!sheet) {
-      sheet = await doc.addSheet({
-        title: "Exercises",
-        headerValues: ["id", "name", "category", "lastWeight", "personalBest", "unit"],
-      })
+    if (!sheet && !progressSheet) {
+      try {
+        sheet = await doc.addSheet({
+          title: sheetName,
+          headerValues: ["id", "name", "category", "lastWeight", "personalBest", "unit"],
+        })
 
-      // Add some sample data if the sheet is new
-      await sheet.addRows([
-        { id: "1", name: "Bench Press", category: "Chest", lastWeight: 185, personalBest: 225, unit: "lbs" },
-        { id: "2", name: "Squat", category: "Legs", lastWeight: 225, personalBest: 315, unit: "lbs" },
-        { id: "3", name: "Deadlift", category: "Back", lastWeight: 275, personalBest: 365, unit: "lbs" },
-        { id: "4", name: "Shoulder Press", category: "Shoulders", lastWeight: 135, personalBest: 165, unit: "lbs" },
-        { id: "5", name: "Pull-ups", category: "Back", lastWeight: 0, personalBest: 15, unit: "reps" },
-      ])
+        progressSheet = await doc.addSheet({
+          title: progressSheetName,
+          headerValues: ["exerciseId", "date", "weight", "reps", "sets"],
+        })
+
+      } catch (error) {
+        console.error("Error creating sheet:", error)
+        // If sheet creation fails (e.g., already exists), try to get the existing sheet
+        sheet = doc.sheetsByTitle[sheetName]
+        if (!sheet) {
+          throw error // If we still can't find the sheet, throw the original error
+        }
+      }
     }
 
     // Get rows from the sheet
@@ -79,91 +88,61 @@ export const getExercises = async (): Promise<ExerciseData[]> => {
     }))
   } catch (error) {
     console.error("Error fetching exercises:", error)
-    // Return mock data if there's an error
-    return [
-      {
-        id: "1",
-        name: "Bench Press",
-        category: "Chest",
-        lastWeight: 185,
-        personalBest: 225,
-        unit: "lbs",
-      },
-      {
-        id: "2",
-        name: "Squat",
-        category: "Legs",
-        lastWeight: 225,
-        personalBest: 315,
-        unit: "lbs",
-      },
-      {
-        id: "3",
-        name: "Deadlift",
-        category: "Back",
-        lastWeight: 275,
-        personalBest: 365,
-        unit: "lbs",
-      },
-      {
-        id: "4",
-        name: "Shoulder Press",
-        category: "Shoulders",
-        lastWeight: 135,
-        personalBest: 165,
-        unit: "lbs",
-      },
-      {
-        id: "5",
-        name: "Pull-ups",
-        category: "Back",
-        lastWeight: 0,
-        personalBest: 15,
-        unit: "reps",
-      },
-    ]
+    return []
   }
 }
 
 // Get progress data for a specific exercise
-export const getExerciseProgress = async (exerciseId: string): Promise<ExerciseProgress[]> => {
+export const getExerciseProgress = async (userId: string, exerciseId: string): Promise<ExerciseProgress[]> => {
   try {
     const doc = await initializeGoogleSheets()
-    let sheet = doc.sheetsByTitle["Progress"]
+    const sheetName = `${userId}Progress`  // e.g., "IvanProgress"
+    let sheet = doc.sheetsByTitle[sheetName]
 
     // If the sheet doesn't exist, create it with headers
     if (!sheet) {
-      sheet = await doc.addSheet({ title: "Progress", headerValues: ["exerciseId", "date", "weight", "reps", "sets"] })
+      try {
+        sheet = await doc.addSheet({ 
+          title: sheetName, 
+          headerValues: ["exerciseId", "date", "weight", "reps", "sets"] 
+        })
 
-      // Add some sample data if the sheet is new
-      const today = new Date()
-      const sampleData = []
+        // Add some sample data if the sheet is new
+        const today = new Date()
+        const sampleData = []
 
-      // Generate sample data for each exercise
-      for (let i = 1; i <= 5; i++) {
-        for (let j = 0; j < 10; j++) {
-          const date = new Date(today)
-          date.setDate(date.getDate() - j * 7) // Weekly data points
+        // Generate sample data for each exercise
+        for (let i = 1; i <= 5; i++) {
+          for (let j = 0; j < 10; j++) {
+            const date = new Date(today)
+            date.setDate(date.getDate() - j * 7) // Weekly data points
 
-          // Generate a weight that generally increases over time (as we go back in time)
-          // with some random variation
-          const baseWeight = i === 1 ? 185 : i === 2 ? 225 : i === 3 ? 275 : i === 4 ? 135 : 0
+            // Generate a weight that generally increases over time (as we go back in time)
+            // with some random variation
+            const baseWeight = i === 1 ? 185 : i === 2 ? 225 : i === 3 ? 275 : i === 4 ? 135 : 0
 
-          const randomVariation = Math.floor(Math.random() * 10) - 5 // -5 to +5
-          const weightTrend = Math.max(0, baseWeight - j * 5) // Decrease as we go back in time
-          const weight = weightTrend + randomVariation
+            const randomVariation = Math.floor(Math.random() * 10) - 5 // -5 to +5
+            const weightTrend = Math.max(0, baseWeight - j * 5) // Decrease as we go back in time
+            const weight = weightTrend + randomVariation
 
-          sampleData.push({
-            exerciseId: i.toString(),
-            date: date.toISOString().split("T")[0], // YYYY-MM-DD format
-            weight,
-            reps: Math.floor(Math.random() * 5) + 8, // 8-12 reps
-            sets: Math.floor(Math.random() * 2) + 3, // 3-4 sets
-          })
+            sampleData.push({
+              exerciseId: i.toString(),
+              date: date.toISOString().split("T")[0], // YYYY-MM-DD format
+              weight,
+              reps: Math.floor(Math.random() * 5) + 8, // 8-12 reps
+              sets: Math.floor(Math.random() * 2) + 3, // 3-4 sets
+            })
+          }
+        }
+
+        await sheet.addRows(sampleData)
+      } catch (error) {
+        // If sheet creation fails (e.g., already exists), try to get the existing sheet
+        sheet = doc.sheetsByTitle[sheetName]
+        if (!sheet) {
+          throw error // If we still can't find the sheet, throw the original error
         }
       }
-
-      await sheet.addRows(sampleData)
     }
 
     // Get rows from the sheet
@@ -182,78 +161,90 @@ export const getExerciseProgress = async (exerciseId: string): Promise<ExerciseP
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   } catch (error) {
     console.error(`Error fetching progress for exercise ${exerciseId}:`, error)
-
-    // Return mock data if there's an error
-    const today = new Date()
-    const mockData: ExerciseProgress[] = []
-
-    // Generate 10 data points going back in time
-    for (let i = 0; i < 10; i++) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i * 7) // Weekly data points
-
-      // Generate a weight that generally increases over time (as we go back in time)
-      // with some random variation
-      const baseWeight =
-        exerciseId === "1" ? 185 : exerciseId === "2" ? 225 : exerciseId === "3" ? 275 : exerciseId === "4" ? 135 : 0
-
-      const randomVariation = Math.floor(Math.random() * 10) - 5 // -5 to +5
-      const weightTrend = Math.max(0, baseWeight - i * 5) // Decrease as we go back in time
-      const weight = weightTrend + randomVariation
-
-      mockData.push({
-        date: date.toISOString().split("T")[0], // YYYY-MM-DD format
-        weight,
-        reps: Math.floor(Math.random() * 5) + 8, // 8-12 reps
-        sets: Math.floor(Math.random() * 2) + 3, // 3-4 sets
-      })
-    }
-
-    // Sort by date ascending
-    return mockData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    return []
   }
 }
 
 // Add a new exercise to the sheet
-export const addExercise = async (exercise: Omit<ExerciseData, "id">): Promise<ExerciseData> => {
+export const addExercise = async (userId: string, exercise: Omit<ExerciseData, "id">): Promise<ExerciseData> => {
   try {
+    
     const doc = await initializeGoogleSheets()
-    const sheet = doc.sheetsByTitle["Exercises"]
+    
+    // Get Exercises sheet
+    const exercisesSheetName = `${userId}Exercises`
+    const exercisesSheet = doc.sheetsByTitle[exercisesSheetName]
+
+    if (!exercisesSheet) {
+      throw new Error(`Sheet ${exercisesSheetName} not found`)
+    }
+
+    // Get Progress sheet
+    const progressSheetName = `${userId}Progress`
+    const progressSheet = doc.sheetsByTitle[progressSheetName]
+
+    if (!progressSheet) {
+      throw new Error(`Sheet ${progressSheetName} not found`)
+    }
 
     // Get all exercises to determine the next ID
-    const rows = await sheet.getRows()
+    const rows = await exercisesSheet.getRows()
+    
     const nextId = rows.length > 0 
       ? Math.max(...rows.map((row) => Number.parseInt(row.id as string || "0"))) + 1 
       : 1
 
-    // Add the new exercise
+    // Prepare the new exercise data
     const newExercise = {
       id: nextId.toString(),
-      ...exercise,
+      name: exercise.name,
+      category: exercise.category,
+      lastWeight: exercise.lastWeight || 0,
+      personalBest: exercise.personalBest || exercise.lastWeight || 0,
+      unit: exercise.unit || "kgs",
     }
 
-    await sheet.addRow(newExercise)
+    // Add the new exercise
+    const addedRow = await exercisesSheet.addRow(newExercise)
 
+
+    // Add initial progress entry if weight is provided
+    if (exercise.lastWeight > 0) {
+      const today = new Date().toISOString().split('T')[0]
+      const initialProgress = {
+        exerciseId: nextId.toString(),
+        date: today,
+        weight: exercise.lastWeight,
+        reps: 0,
+        sets: 0
+      }
+      await progressSheet.addRow(initialProgress)
+    }
+    
     return newExercise
   } catch (error) {
-    console.error("Error adding exercise:", error)
+    console.error("Error in addExercise:", error)
     throw error
   }
 }
 
 // Add a new progress entry
 export const addProgressEntry = async (
+  userId: string,
   entry: { exerciseId: string } & Omit<ExerciseProgress, "id">,
 ): Promise<ExerciseProgress> => {
   try {
     const doc = await initializeGoogleSheets()
-    const sheet = doc.sheetsByTitle["Progress"]
+    const progressSheetName = `${userId}Progress`
+    const exercisesSheetName = `${userId}Exercises`
+    
+    const sheet = doc.sheetsByTitle[progressSheetName]
+    const exercisesSheet = doc.sheetsByTitle[exercisesSheetName]
 
     // Add the new progress entry
     await sheet.addRow(entry)
 
     // Update the last weight in the Exercises sheet
-    const exercisesSheet = doc.sheetsByTitle["Exercises"]
     const exerciseRows = await exercisesSheet.getRows()
     const exerciseRow = exerciseRows.find((row) => row.id === entry.exerciseId)
 

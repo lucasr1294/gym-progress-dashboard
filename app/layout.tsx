@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { UserProvider } from "./contexts/UserContext"
+import { LogoutButton } from "./components/logout-button"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,9 +22,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <UserProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <div className="min-h-screen">
+              <header className="border-b">
+                <div className=" flex  justify-between px-4 py-2">
+                  <h1 className="text-xl font-bold">Gym Dashboard</h1>
+                  <LogoutButton />
+                </div>
+              </header>
+              <main className="container px-4 py-6">
+                {children}
+              </main>
+            </div>
+          </ThemeProvider>
+        </UserProvider>
       </body>
     </html>
   )

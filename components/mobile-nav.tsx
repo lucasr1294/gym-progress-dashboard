@@ -11,7 +11,7 @@ export function MobileNav() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="flex items-center justify-between p-4 border-b md:hidden">
+    <div className="flex items-center justify-between p-1 border-b md:hidden">
       <div className="flex items-center gap-2">
         <Dumbbell className="h-6 w-6" />
         <h1 className="text-xl font-bold">Gym Progress</h1>

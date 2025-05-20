@@ -8,7 +8,7 @@ import { ExercisesContent } from "@/components/exercises-content"
 export default function ExercisesPage() {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 mt-4">
         <h1 className="text-3xl font-bold tracking-tight">Exercises</h1>
         <AddExerciseForm />
       </div>

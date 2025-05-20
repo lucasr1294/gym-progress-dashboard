@@ -12,7 +12,7 @@ export default function DashboardLayout({
       <MobileNav />
       <div className="flex flex-1">
         <Sidebar className="hidden md:flex" />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-2 md:p-6 max-w-[95vw] md:max-w-none">{children}</main>
       </div>
     </div>
   )

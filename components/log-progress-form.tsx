@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { logProgress } from "@/app/actions/exercise-actions"
+import { logProgressAction } from "@/app/actions/exercise-actions"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -34,7 +34,7 @@ export function LogProgressForm({ exerciseId, exerciseName, unit }: LogProgressF
     setIsSubmitting(true)
 
     try {
-      const result = await logProgress(formData)
+      const result = await logProgressAction(formData)
 
       if (result.success) {
         toast({
