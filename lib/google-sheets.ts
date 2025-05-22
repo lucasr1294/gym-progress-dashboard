@@ -1,6 +1,4 @@
 import { GoogleSpreadsheet } from "google-spreadsheet"
-import { JWT } from "google-auth-library"
-
 // Types for our exercise data
 export interface ExerciseData {
   id: string
@@ -96,7 +94,7 @@ export const getExercises = async (userId: string): Promise<ExerciseData[]> => {
 export const getExerciseProgress = async (userId: string, exerciseId: string): Promise<ExerciseProgress[]> => {
   try {
     const doc = await initializeGoogleSheets()
-    const sheetName = `${userId}Progress`  // e.g., "IvanProgress"
+    const sheetName = `${userId}Progress`
     let sheet = doc.sheetsByTitle[sheetName]
 
     // If the sheet doesn't exist, create it with headers

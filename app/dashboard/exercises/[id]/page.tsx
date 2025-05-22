@@ -14,7 +14,8 @@ interface ExerciseDetailPageProps {
 export async function generateMetadata({ params }: ExerciseDetailPageProps): Promise<Metadata> {
   const cookieStore = await cookies()
   const userId = cookieStore.get("userId")?.value
-  const exercise = userId ? await getExerciseById(userId, params.id) : null
+  const { id } = params
+  const exercise = userId ? await getExerciseById(userId, id) : null
 
   return {
     title: exercise ? `${exercise.name} - Exercise Details` : 'Exercise Not Found',
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: ExerciseDetailPageProps): Pro
 export default async function ExerciseDetailPage({ params }: ExerciseDetailPageProps) {
   const cookieStore = await cookies()
   const userId = cookieStore.get("userId")?.value
-  const id = params.id
+  const { id } = params
 
   if (!userId) return null
 
