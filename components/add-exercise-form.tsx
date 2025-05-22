@@ -16,16 +16,32 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { Loader2 } from "lucide-react"
+import { useFormStatus } from "react-dom"
+
+// Componente separado para el botón de submit
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Adding...
+        </>
+      ) : (
+        "Add Exercise"
+      )}
+    </Button>
+  )
+}
 
 export function AddExerciseForm() {
   const [open, setOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [unit, setUnit] = useState("kgs")
   const { toast } = useToast()
 
   async function handleSubmit(formData: FormData) {
-    setIsSubmitting(true)
-
     try {
       const result = await createExercise(formData)
 
@@ -48,8 +64,6 @@ export function AddExerciseForm() {
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -112,9 +126,7 @@ export function AddExerciseForm() {
             />
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Exercise"}
-            </Button>
+            <SubmitButton />
           </DialogFooter>
         </form>
       </DialogContent>

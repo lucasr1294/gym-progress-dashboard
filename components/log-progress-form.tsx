@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { logProgress } from "@/app/actions/exercise-actions"
+import { logProgressAction } from "@/app/actions/exercise-actions"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -32,9 +32,9 @@ export function LogProgressForm({ exerciseId, exerciseName, unit }: LogProgressF
 
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true)
-
+    
     try {
-      const result = await logProgress(formData)
+      const result = await logProgressAction(formData)
 
       if (result.success) {
         toast({
@@ -70,7 +70,10 @@ export function LogProgressForm({ exerciseId, exerciseName, unit }: LogProgressF
           <DialogTitle>Log Progress for {exerciseName}</DialogTitle>
           <DialogDescription>Record your latest workout data for this exercise.</DialogDescription>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(new FormData(e.currentTarget));
+        }} className="space-y-4 py-4">
           <input type="hidden" name="exerciseId" value={exerciseId} />
 
           <div className="space-y-2">

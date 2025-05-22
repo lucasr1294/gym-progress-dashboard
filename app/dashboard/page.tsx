@@ -3,13 +3,14 @@ import { getAllExercises } from "@/app/actions/exercise-actions"
 import { DashboardContent } from "@/components/dashboard-content"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { cookies } from "next/headers"
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your gym progress and recent exercises.</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Overview of your gym progress and recent exercises.</p>
       </div>
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContentWrapper />
