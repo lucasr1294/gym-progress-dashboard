@@ -1,6 +1,7 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode } from "react"
+import { createContext, useContext, useState, ReactNode, useEffect } from "react"
+import { getCookie } from "cookies-next"
 
 interface User {
   id: string
@@ -16,6 +17,17 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    // Recuperar el userId de las cookies
+    const userId = getCookie("userId")
+    if (userId) {
+      setUser({
+        id: userId as string,
+        name: userId as string
+      })
+    }
+  }, [])
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
