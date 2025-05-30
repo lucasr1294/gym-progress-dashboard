@@ -19,7 +19,6 @@ import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import { useFormStatus } from "react-dom"
 
-// Componente separado para el botón de submit
 function SubmitButton() {
   const { pending } = useFormStatus()
   
@@ -96,23 +95,6 @@ export function AddExerciseForm() {
                 <SelectItem value="Piernas">Piernas</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="lastWeight">Current Weight</Label>
-              <Input id="lastWeight" name="lastWeight" type="number" min="0" step="any" placeholder="0" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="unit">Unit</Label>
-              <Select name="unit" defaultValue="kg">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="kg">kg</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="personalBest">Personal Best (Optional)</Label>

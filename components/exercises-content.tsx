@@ -2,11 +2,8 @@
 
 import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
-
 import type { ExerciseData } from "@/lib/google-sheets"
-import { AddExerciseForm } from "@/components/add-exercise-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface ExercisesContentProps {
   exercises: ExerciseData[]
@@ -27,7 +24,7 @@ export function ExercisesContent({ exercises }: ExercisesContentProps) {
 
   return (
     <>
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>All Exercises</CardTitle>
           <CardDescription>View and manage all your tracked exercises</CardDescription>
@@ -75,47 +72,47 @@ export function ExercisesContent({ exercises }: ExercisesContentProps) {
             </Table>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       {Object.keys(exercisesByCategory).length > 0 && (
         <div className="mt-8 space-y-6">
-          <h2 className="text-xl font-bold">Exercises by Category</h2>
           {Object.entries(exercisesByCategory).map(([category, exercises]) => (
             <Card key={category}>
               <CardHeader>
                 <CardTitle>{category}</CardTitle>
                 <CardDescription>
-                  {exercises.length} exercise{exercises.length !== 1 ? "s" : ""}
+                  Haz click en 'Ver' para acceder al detalle de cada ejercicio.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {exercises.map((exercise) => (
                     <Card key={exercise.id}>
-                      <CardHeader className="pb-2">
+                      <CardHeader className="pb-2 flex flex-row justify-between items-center">
                         <CardTitle className="text-lg">{exercise.name}</CardTitle>
+                        <Link
+                            href={`/dashboard/exercises/${exercise.id}`}
+                            className="flex items-center text-sm text-blue-500 hover:underline"
+                          >
+                            Ver
+                            <ArrowUpRight className="ml-1 h-3 w-3" />
+                          </Link>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center gap-4">
                           <div>
                             <p className="text-sm text-muted-foreground">Last Weight</p>
                             <p className="font-medium">
-                              {exercise.lastWeight} {exercise.unit}
+                              {exercise.lastWeight ? exercise.lastWeight : '-'} {exercise.unit}
                             </p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Personal Best</p>
                             <p className="font-medium">
-                              {exercise.personalBest} {exercise.unit}
+                              {exercise.personalBest ? exercise.personalBest : '-'} {exercise.unit}
                             </p>
                           </div>
-                          <Link
-                            href={`/dashboard/exercises/${exercise.id}`}
-                            className="flex items-center text-sm text-blue-500 hover:underline"
-                          >
-                            Details
-                            <ArrowUpRight className="ml-1 h-3 w-3" />
-                          </Link>
+    
                         </div>
                       </CardContent>
                     </Card>

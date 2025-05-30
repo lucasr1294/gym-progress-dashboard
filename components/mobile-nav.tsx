@@ -14,7 +14,7 @@ export function MobileNav() {
     <div className="flex items-center justify-between p-1 border-b md:hidden">
       <div className="flex items-center gap-2">
         <Dumbbell className="h-6 w-6" />
-        <h1 className="text-xl font-bold">Gym Progress</h1>
+        <h1 className="text-xl font-bold">Weight Tracker</h1>
       </div>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
