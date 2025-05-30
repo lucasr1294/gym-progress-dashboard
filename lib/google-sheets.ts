@@ -1,6 +1,8 @@
 import { GoogleSpreadsheet } from "google-spreadsheet"
 
 // Types for our exercise data
+import { initializeGoogleSheets } from "@/app/actions/exercise-actions"
+
 export interface ExerciseData {
   id: string
   name: string
@@ -11,33 +13,19 @@ export interface ExerciseData {
 }
 
 export interface ExerciseProgress {
+  weight?: number
+  reps?: number
+  sets?: number
   date: string
-  weight: number
-  reps: number
-  sets: number
-}
-
-// Initialize the Google Sheets client
-const initializeGoogleSheets = async () => {
-  try {
-    const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!
-    const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY!
-    const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID!
-
-    const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID)
-    
-    // Use the correct credential format
-    await doc.useServiceAccountAuth({
-      client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    })
-
-    await doc.loadInfo()
-    return doc
-  } catch (error) {
-    console.error("Error initializing Google Sheets:", error)
-    throw error
-  }
+  exerciseId: string
+  set1Weight?: number
+  set1Reps?: number
+  set2Weight?: number
+  set2Reps?: number
+  set3Weight?: number
+  set3Reps?: number
+  set4Weight?: number
+  set4Reps?: number
 }
 
 // Get all exercises from the user-specific sheet
@@ -153,9 +141,15 @@ export const getExerciseProgress = async (userId: string, exerciseId: string): P
     return filteredRows
       .map((row) => ({
         date: row.date as string,
-        weight: Number.parseFloat(row.weight as string) || 0,
-        reps: Number.parseInt(row.reps as string) || 0,
-        sets: Number.parseInt(row.sets as string) || 0,
+        exerciseId: row.exerciseId as string,
+        set1Weight: Number.parseFloat(row.set1Weight as string) || 0,
+        set1Reps: Number.parseInt(row.set1Reps as string) || 0,
+        set2Weight: Number.parseFloat(row.set2Weight as string) || 0,
+        set2Reps: Number.parseInt(row.set2Reps as string) || 0,
+        set3Weight: Number.parseFloat(row.set3Weight as string) || 0,
+        set3Reps: Number.parseInt(row.set3Reps as string) || 0,
+        set4Weight: Number.parseFloat(row.set4Weight as string) || 0,
+        set4Reps: Number.parseInt(row.set4Reps as string) || 0,
       }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   } catch (error) {
@@ -167,7 +161,13 @@ export const getExerciseProgress = async (userId: string, exerciseId: string): P
 // Add a new exercise to the sheet
 export const addExercise = async (userId: string, exercise: Omit<ExerciseData, "id">): Promise<ExerciseData> => {
   try {
-    
+    if (!exercise.name?.trim()) {
+      throw new Error("Exercise name is required")
+    }
+    if (!exercise.category?.trim()) {
+      throw new Error("Exercise category is required")
+    }
+
     const doc = await initializeGoogleSheets()
     
     // Get Exercises sheet
@@ -193,32 +193,17 @@ export const addExercise = async (userId: string, exercise: Omit<ExerciseData, "
       ? Math.max(...rows.map((row) => Number.parseInt(row.id as string || "0"))) + 1 
       : 1
 
-    // Prepare the new exercise data
     const newExercise = {
       id: nextId.toString(),
       name: exercise.name,
       category: exercise.category,
-      lastWeight: exercise.lastWeight || 0,
-      personalBest: exercise.personalBest || exercise.lastWeight || 0,
-      unit: exercise.unit || "kgs",
+      lastWeight: 0,
+      personalBest: 0,
+      unit: "kgs"
     }
 
-    // Add the new exercise
-    const addedRow = await exercisesSheet.addRow(newExercise)
-
-
-    // Add initial progress entry if weight is provided
-    if (exercise.lastWeight > 0) {
-      const today = new Date().toISOString().split('T')[0]
-      const initialProgress = {
-        exerciseId: nextId.toString(),
-        date: today,
-        weight: exercise.lastWeight,
-        reps: 0,
-        sets: 0
-      }
-      await progressSheet.addRow(initialProgress)
-    }
+    // Add the new row to the sheet
+    await exercisesSheet.addRow(newExercise)
     
     return newExercise
   } catch (error) {
@@ -250,12 +235,19 @@ export const addProgressEntry = async (
     if (exerciseRow) {
       const currentPB = Number.parseFloat(exerciseRow.personalBest as string || "0")
 
+      const maxWeight = entry.weight || Math.max(
+          entry.set1Weight || 0,
+          entry.set2Weight || 0,
+          entry.set3Weight || 0,
+          entry.set4Weight || 0
+        )
+
       // Update last weight
-      exerciseRow.lastWeight = entry.weight.toString()
+      exerciseRow.lastWeight = entry.weight ? entry.weight.toString() : maxWeight.toString()
 
       // Update personal best if the new weight is higher
-      if (entry.weight > currentPB) {
-        exerciseRow.personalBest = entry.weight.toString()
+      if (maxWeight > currentPB) {
+        exerciseRow.personalBest = maxWeight.toString()
       }
 
       await exerciseRow.save()

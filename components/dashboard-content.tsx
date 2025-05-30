@@ -8,13 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 interface DashboardContentProps {
   exercises: ExerciseData[]
+  lastWorkout: any
 }
 
-export function DashboardContent({ exercises }: DashboardContentProps) {
+export function DashboardContent({ exercises, lastWorkout }: DashboardContentProps) {
   // Calculate some stats
   const totalExercises = exercises.length
   const categories = [...new Set(exercises.map((ex) => ex.category))]
   const personalBests = exercises.filter((ex) => ex.lastWeight === ex.personalBest).length
+  const lastSessionDate = new Date(lastWorkout.date).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC'
+  })
 
   return (
     <>
@@ -26,22 +33,22 @@ export function DashboardContent({ exercises }: DashboardContentProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalExercises}</div>
-            <p className="text-xs text-muted-foreground">Tracked exercises in your routine</p>
+            <p className="text-xs text-muted-foreground">Ejercicios registrados en tu rutina</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <CardTitle className="text-sm font-medium">Categorías</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categories.length}</div>
-            <p className="text-xs text-muted-foreground">Different muscle groups</p>
+            <p className="text-xs text-muted-foreground">Grupos musculares diferentes</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Personal Bests</CardTitle>
+            <CardTitle className="text-sm font-medium">Mejores marcas</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -62,7 +69,7 @@ export function DashboardContent({ exercises }: DashboardContentProps) {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Updated</CardTitle>
+            <CardTitle className="text-sm font-medium">Última sesión</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -78,13 +85,13 @@ export function DashboardContent({ exercises }: DashboardContentProps) {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{new Date().toLocaleDateString()}</div>
-            <p className="text-xs text-muted-foreground">Last workout session</p>
+              <div className="text-2xl font-bold">{lastSessionDate}</div>
+            <p className="text-xs text-muted-foreground">Última sesión de entrenamiento</p>
           </CardContent>
         </Card>
       </div>
       <div className="mt-4 md:mt-6">
-        <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Recent Exercises</h2>
+        <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Ejercicios recientes</h2>
         {exercises.length === 0 && (
           <p className="text-sm md:text-base text-muted-foreground">No tienes ejercicios registrados</p>
         )}
