@@ -1,18 +1,50 @@
 import { Suspense } from "react"
-import { getAllExercises } from "@/app/actions/exercise-actions"
+import { getAllExercises, getLastWorkout } from "@/app/actions/exercise-actions"
 import { DashboardContent } from "@/components/dashboard-content"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ErrorComponent } from "./error-component"
 import { ErrorBoundary } from "next/dist/client/components/error-boundary"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function DashboardPage() {
   return (
     <div className="space-y-4 md:space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm md:text-base text-muted-foreground">Overview of your gym progress and recent exercises.</p>
+        <p className="text-sm md:text-base text-muted-foreground">Resumen de tu progreso en el gimnasio.</p>
       </div>
+      <Dialog>
+        <DialogTrigger className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md">
+          Ver notas de actualizacion 📝
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¡Bienvenido a la app de luxor! 🦁</DialogTitle>
+            <DialogDescription>
+              Se cambio el idioma a español. <br /> Tambien agregue la opcion de editar los ejercicios, y la opcion de agregar series a cada ejercicio. <br/>
+              Ahora ponete a entrenar y no seas trolo que la libertad avanza necesita gordos gigantes.
+              <br />
+              <br />
+              <a 
+                href="https://www.youtube.com/watch?v=QYniYISCgHM&ab_channel=ILPOLITICS" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md inline-block"
+              >
+                Ver video motivacional 
+              </a>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
       <ErrorBoundary errorComponent={ErrorComponent}>
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContentWrapper />
@@ -24,7 +56,8 @@ export default function DashboardPage() {
 
 async function DashboardContentWrapper() {
   const exercises = await getAllExercises()
-  return <DashboardContent exercises={exercises} />
+  const lastWorkout = await getLastWorkout()
+  return <DashboardContent exercises={exercises} lastWorkout={lastWorkout} />
 }
 
 function DashboardSkeleton() {
