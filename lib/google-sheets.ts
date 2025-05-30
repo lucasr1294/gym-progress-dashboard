@@ -1,3 +1,6 @@
+import { GoogleSpreadsheet } from "google-spreadsheet"
+
+// Types for our exercise data
 import { initializeGoogleSheets } from "@/app/actions/exercise-actions"
 
 export interface ExerciseData {
@@ -46,7 +49,7 @@ export const getExercises = async (userId: string): Promise<ExerciseData[]> => {
 
         progressSheet = await doc.addSheet({
           title: progressSheetName,
-          headerValues: ["exerciseId", "date", "weight", "reps", "sets"],
+          headerValues: ["exerciseId", "date", "weight", "reps", "sets", "set1Weight", "set1Reps", "set2Weight", "set2Reps", "set3Weight", "set3Reps", "set4Weight", "set4Reps"],
         })
 
       } catch (error) {
