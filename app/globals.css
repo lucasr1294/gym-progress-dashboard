@@ -99,4 +99,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* The native calendar icon on <input type="date"> renders flush against
+     the input's own padding box, ignoring it — give it room to breathe. */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    margin-left: 0.5rem;
+  }
 }
