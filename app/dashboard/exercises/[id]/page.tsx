@@ -33,6 +33,6 @@ export default async function ExerciseDetailPage({ params }: ExerciseDetailPageP
   const progressData = exercise ? await getExerciseProgressById(userId, id) : []
 
   return (
-    <ExerciseDetailClient exercise={exercise} progressData={progressData} />
+    <ExerciseDetailClient exercise={exercise} progressData={progressData} userId={userId} />
   )
 }

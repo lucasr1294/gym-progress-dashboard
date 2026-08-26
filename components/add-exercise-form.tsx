@@ -27,10 +27,10 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Adding...
+          Agregando...
         </>
       ) : (
-        "Add Exercise"
+        "Agregar ejercicio"
       )}
     </Button>
   )
@@ -46,7 +46,7 @@ export function AddExerciseForm() {
 
       if (result.success) {
         toast({
-          title: "Success",
+          title: "Éxito",
           description: result.message,
         })
         setOpen(false)
@@ -60,7 +60,7 @@ export function AddExerciseForm() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: "Algo salió mal. Intentá de nuevo.",
         variant: "destructive",
       })
     }
@@ -69,23 +69,23 @@ export function AddExerciseForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add Exercise</Button>
+        <Button>Agregar ejercicio</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Exercise</DialogTitle>
-          <DialogDescription>Enter the details of the exercise you want to track.</DialogDescription>
+          <DialogTitle>Agregar nuevo ejercicio</DialogTitle>
+          <DialogDescription>Ingresá los detalles del ejercicio que querés registrar.</DialogDescription>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Exercise Name</Label>
-            <Input id="name" name="name" placeholder="e.g. Pecho plano" required />
+            <Label htmlFor="name">Nombre del ejercicio</Label>
+            <Input id="name" name="name" placeholder="ej. Press de banca" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">Categoría</Label>
             <Select name="category" defaultValue="Pecho">
               <SelectTrigger>
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Seleccionar categoría" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Pecho">Pecho</SelectItem>
@@ -97,14 +97,14 @@ export function AddExerciseForm() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="personalBest">Personal Best (Optional)</Label>
+            <Label htmlFor="personalBest">Mejor marca (opcional)</Label>
             <Input
               id="personalBest"
               name="personalBest"
               type="number"
               min="0"
               step="any"
-              placeholder="Same as current weight if not specified"
+              placeholder="Igual al peso actual si no se especifica"
             />
           </div>
           <DialogFooter>

@@ -111,6 +111,96 @@ export async function createExercise(formData: FormData) {
   }
 }
 
+export async function updateExerciseAction(formData: FormData) {
+  try {
+    const cookieStore = await cookies()
+    const userId = cookieStore.get("userId")?.value
+
+    if (!userId) {
+      return { success: false, message: "User not authenticated" }
+    }
+
+    const exerciseId = formData.get("exerciseId") as string
+    const name = formData.get("name") as string
+    const category = formData.get("category") as string
+    const personalBestRaw = formData.get("personalBest") as string
+
+    if (!exerciseId || !name || !category) {
+      return { success: false, message: "Name and category are required" }
+    }
+
+    const doc = await initializeGoogleSheets()
+    const sheet = doc.sheetsByTitle[`${userId}Exercises`]
+    const rows = await sheet.getRows()
+    const row = rows.find((row) => row.id === exerciseId)
+
+    if (!row) {
+      return { success: false, message: "Exercise not found" }
+    }
+
+    row.name = name
+    row.category = category
+
+    if (personalBestRaw) {
+      const personalBest = Number.parseFloat(personalBestRaw)
+      if (!isNaN(personalBest)) {
+        row.personalBest = personalBest.toString()
+      }
+    }
+
+    await row.save()
+
+    revalidatePath(`/dashboard/exercises/${exerciseId}`)
+    revalidatePath("/dashboard/exercises")
+    revalidatePath("/dashboard")
+
+    return { success: true, message: "Exercise updated successfully" }
+  } catch (error) {
+    console.error("Error in updateExerciseAction:", error)
+    return { success: false, message: "Failed to update exercise" }
+  }
+}
+
+export async function deleteExerciseAction(exerciseId: string) {
+  try {
+    const cookieStore = await cookies()
+    const userId = cookieStore.get("userId")?.value
+
+    if (!userId) {
+      return { success: false, message: "User not authenticated" }
+    }
+
+    const doc = await initializeGoogleSheets()
+    const exercisesSheet = doc.sheetsByTitle[`${userId}Exercises`]
+    const progressSheet = doc.sheetsByTitle[`${userId}Progress`]
+
+    const exerciseRows = await exercisesSheet.getRows()
+    const exerciseRow = exerciseRows.find((row) => row.id === exerciseId)
+
+    if (!exerciseRow) {
+      return { success: false, message: "Exercise not found" }
+    }
+
+    await exerciseRow.delete()
+
+    // Clean up any logged progress for this exercise. Delete from the
+    // last matching row up so earlier deletions don't shift later indexes.
+    const progressRows = await progressSheet.getRows()
+    const rowsToDelete = progressRows.filter((row) => row.exerciseId === exerciseId)
+    for (const row of rowsToDelete.reverse()) {
+      await row.delete()
+    }
+
+    revalidatePath("/dashboard/exercises")
+    revalidatePath("/dashboard")
+
+    return { success: true, message: "Exercise deleted successfully" }
+  } catch (error) {
+    console.error("Error in deleteExerciseAction:", error)
+    return { success: false, message: "Failed to delete exercise" }
+  }
+}
+
 export async function logProgress(userId: string, formData: FormData) {
   try {
     const exerciseId = formData.get("exerciseId") as string
@@ -380,5 +470,37 @@ export async function updateProgress(userId: string, formData: FormData) {
   } catch (error) {
     console.error("Error updating progress:", error)
     return { success: false, message: "Failed to update progress" }
+  }
+}
+
+export async function deleteWorkoutAction(workout: ExerciseProgress) {
+  try {
+    const cookieStore = await cookies()
+    const userId = cookieStore.get("userId")?.value
+
+    if (!userId) {
+      return { success: false, message: "User not authenticated" }
+    }
+
+    const doc = await initializeGoogleSheets()
+    const sheetName = `${userId}Progress`
+    const sheet = doc.sheetsByTitle[sheetName]
+    const rows = await sheet.getRows()
+    
+    const row = rows.find((row) => 
+      row.exerciseId === workout.exerciseId && 
+      row.date === workout.date 
+    )
+
+    if (row) {
+      await row.delete()
+      revalidatePath(`/dashboard/exercises/${workout.exerciseId}`)
+      return { success: true, message: "Workout deleted successfully" }
+    }
+
+    return { success: false, message: "Workout not found" }
+  } catch (error) {
+    console.error("Error deleting workout:", error)
+    return { success: false, message: "Failed to delete workout" }
   }
 }

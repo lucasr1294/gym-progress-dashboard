@@ -9,7 +9,10 @@ export default function ExercisesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6 mt-4">
-        <h1 className="text-3xl font-bold tracking-tight">Ejercicios por categoría</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Ejercicios por categoría</h1>
+          <p className="text-sm text-muted-foreground">Haz click en 'Ver' para acceder al detalle de cada ejercicio.</p>
+        </div>
         <AddExerciseForm />
       </div>
       <Suspense fallback={<ExercisesSkeleton />}>

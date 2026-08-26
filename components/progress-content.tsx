@@ -47,8 +47,14 @@ export function ProgressContent({ exercises }: ProgressContentProps) {
     value,
   }))
 
-  // Colors for pie chart
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d"]
+  // Colors for pie chart — the Data Series ramp (Deep Bronze -> Pale Straw)
+  const COLORS = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+  ]
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -84,8 +90,8 @@ export function ProgressContent({ exercises }: ProgressContentProps) {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="current" name="Current Weight" fill="#8884d8" />
-                <Bar dataKey="best" name="Personal Best" fill="#82ca9d" />
+                <Bar dataKey="current" name="Current Weight" fill="hsl(var(--accent-data))" />
+                <Bar dataKey="best" name="Personal Best" fill="hsl(var(--chart-1))" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -107,7 +113,7 @@ export function ProgressContent({ exercises }: ProgressContentProps) {
                   cy="50%"
                   labelLine={true}
                   outerRadius={80}
-                  fill="#8884d8"
+                  fill="hsl(var(--chart-1))"
                   dataKey="value"
                   label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                 >
@@ -132,21 +138,21 @@ export function ProgressContent({ exercises }: ProgressContentProps) {
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-medium">Total Exercises</h3>
-              <p className="text-2xl font-bold">{exercises.length}</p>
+              <p className="font-mono text-2xl font-bold tabular-nums">{exercises.length}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium">Muscle Groups</h3>
-              <p className="text-2xl font-bold">{Object.keys(categoryData).length}</p>
+              <p className="font-mono text-2xl font-bold tabular-nums">{Object.keys(categoryData).length}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium">At Personal Best</h3>
-              <p className="text-2xl font-bold">
+              <p className="font-mono text-2xl font-bold tabular-nums">
                 {exercises.filter((ex) => ex.lastWeight === ex.personalBest).length} exercises
               </p>
             </div>
             <div>
               <h3 className="text-sm font-medium">Average Completion</h3>
-              <p className="text-2xl font-bold">
+              <p className="font-mono text-2xl font-bold tabular-nums">
                 {exercises.length > 0
                   ? `${Math.round((exercises.reduce((sum, ex) => sum + ex.lastWeight / ex.personalBest, 0) / exercises.length) * 100)}%`
                   : "0%"}

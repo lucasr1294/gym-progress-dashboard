@@ -16,12 +16,14 @@ export function DashboardContent({ exercises, lastWorkout }: DashboardContentPro
   const totalExercises = exercises.length
   const categories = [...new Set(exercises.map((ex) => ex.category))]
   const personalBests = exercises.filter((ex) => ex.lastWeight === ex.personalBest).length
-  const lastSessionDate = new Date(lastWorkout.date).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    timeZone: 'UTC'
-  })
+  const lastSessionDate = lastWorkout?.date
+    ? new Date(lastWorkout.date).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        timeZone: 'UTC'
+      })
+    : "Sin registros"
 
   return (
     <>
@@ -32,7 +34,7 @@ export function DashboardContent({ exercises, lastWorkout }: DashboardContentPro
             <Dumbbell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalExercises}</div>
+            <div className="font-mono text-2xl font-bold tabular-nums">{totalExercises}</div>
             <p className="text-xs text-muted-foreground">Ejercicios registrados en tu rutina</p>
           </CardContent>
         </Card>
@@ -42,7 +44,7 @@ export function DashboardContent({ exercises, lastWorkout }: DashboardContentPro
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categories.length}</div>
+            <div className="font-mono text-2xl font-bold tabular-nums">{categories.length}</div>
             <p className="text-xs text-muted-foreground">Grupos musculares diferentes</p>
           </CardContent>
         </Card>
@@ -63,7 +65,7 @@ export function DashboardContent({ exercises, lastWorkout }: DashboardContentPro
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{personalBests}</div>
+            <div className="font-mono text-2xl font-bold tabular-nums">{personalBests}</div>
             <p className="text-xs text-muted-foreground">Exercises at personal best</p>
           </CardContent>
         </Card>
@@ -106,19 +108,19 @@ export function DashboardContent({ exercises, lastWorkout }: DashboardContentPro
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
                   <div>
                     <p className="text-xs md:text-sm text-muted-foreground">Last Weight</p>
-                    <p className="text-sm md:text-base font-medium">
+                    <p className="font-mono text-sm md:text-base font-medium tabular-nums">
                       {exercise.lastWeight} {exercise.unit}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs md:text-sm text-muted-foreground">Personal Best</p>
-                    <p className="text-sm md:text-base font-medium">
+                    <p className="font-mono text-sm md:text-base font-medium tabular-nums">
                       {exercise.personalBest} {exercise.unit}
                     </p>
                   </div>
                   <Link
                     href={`/dashboard/exercises/${exercise.id}`}
-                    className="flex items-center text-xs md:text-sm text-blue-500 hover:underline mt-2 sm:mt-0"
+                    className="flex items-center text-xs md:text-sm text-primary underline-offset-4 hover:underline mt-2 sm:mt-0"
                   >
                     Details
                     <ArrowUpRight className="ml-1 h-3 w-3" />
