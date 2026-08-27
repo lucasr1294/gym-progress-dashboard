@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { getAllExercises, getLastWorkout } from "@/app/actions/exercise-actions"
 import { DashboardContent } from "@/components/dashboard-content"
+import { ProverbioDelDia } from "@/components/proverbio-del-dia"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ErrorComponent } from "./error-component"
@@ -20,6 +21,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm md:text-base text-muted-foreground">Resumen de tu progreso en el gimnasio.</p>
+        <ProverbioDelDia />
       </div>
       <Dialog>
         <DialogTrigger className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md">
