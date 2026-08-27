@@ -1,65 +1,187 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useUser } from "../contexts/UserContext"
 import { setCookie } from "cookies-next"
+import { ArrowRight, Loader2, X } from "lucide-react"
+
+import { useUser } from "../contexts/UserContext"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
+
+const STORAGE_KEY = "gpd:names"
+const MAX_NAMES = 6
+
+const toId = (name: string) => name.trim().toLowerCase().replace(/\s+/g, "")
+
+function readNames(): string[] {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return []
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter((n): n is string => typeof n === "string" && n.trim().length > 0)
+      .slice(0, MAX_NAMES)
+  } catch {
+    return []
+  }
+}
+
+function writeNames(names: string[]) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(names.slice(0, MAX_NAMES)))
+  } catch {
+    // Storage unavailable (private window, blocked). The userId cookie still
+    // carries the session — losing the convenience list is acceptable.
+  }
+}
+
+function withNameFirst(name: string, existing: string[]): string[] {
+  const id = toId(name)
+  return [name.trim(), ...existing.filter((n) => toId(n) !== id)].slice(0, MAX_NAMES)
+}
 
 export default function LoginPage() {
-  const [name, setName] = useState("")
   const router = useRouter()
   const { setUser } = useUser()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (name.trim()) {
-      // In a real app, you'd want to validate the user against a database
-      // For now, we'll just use the name as the ID
-      const userId = name.toLowerCase().replace(/\s+/g, "")
-      setUser({ id: userId, name })
-      setCookie("userId", userId)
-      router.push("/dashboard")
+  const [hydrated, setHydrated] = useState(false)
+  const [names, setNames] = useState<string[]>([])
+  const [name, setName] = useState("")
+  const [pending, setPending] = useState<string | null>(null)
+  const submitRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const stored = readNames()
+    setNames(stored)
+    // One known name: pre-fill it and put focus on the button so a single
+    // tap (or Enter) completes re-entry.
+    if (stored.length === 1) {
+      setName(stored[0])
+      requestAnimationFrame(() => submitRef.current?.focus())
     }
+    setHydrated(true)
+  }, [])
+
+  const enter = (raw: string) => {
+    const value = raw.trim()
+    if (!value || pending) return
+    const id = toId(value)
+    setPending(id)
+    writeNames(withNameFirst(value, names))
+    setUser({ id, name: value })
+    setCookie("userId", id)
+    router.push("/dashboard")
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-black-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-black border border-white-700 rounded-lg shadow">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white-900">
-            Ingresa tu nombre 💪🏼
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="name" className="sr-only">
-              Tu nombre
-            </label>
-            <input
-              style={{
-                backgroundColor: "white",
-              }}
-              id="name"
-              name="name"
-              type="text"
-              required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
+  const forget = (target: string) => {
+    const next = names.filter((n) => toId(n) !== toId(target))
+    setNames(next)
+    writeNames(next)
+    setName(next.length === 1 ? next[0] : "")
+  }
 
-          <div>
-            <button
-              type="submit"
-              disabled={!name.trim()}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-white hover:bg-black hover:border-white hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Ingresar
-            </button>
+  const showRoster = hydrated && names.length >= 2
+  const trimmed = name.trim()
+  const submitting = pending !== null && (!showRoster || pending === toId(name))
+
+  return (
+    <div
+      className={cn(
+        "mx-auto w-full min-w-0 max-w-xs transition-[opacity,transform,filter] duration-500 ease-out motion-reduce:transition-none",
+        hydrated
+          ? "opacity-100 translate-y-0 blur-0"
+          : "opacity-0 translate-y-2 blur-[3px]",
+      )}
+    >
+      <h1 className="text-lg font-semibold tracking-tight text-foreground">
+        ¿Quién entrena hoy?
+      </h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Sin contraseña, solo tu nombre.
+      </p>
+
+      {showRoster && (
+        <ul className="mt-7 space-y-2">
+          {names.map((n) => (
+            <li key={toId(n)} className="flex items-stretch gap-1">
+              <button
+                type="button"
+                onClick={() => enter(n)}
+                disabled={pending !== null}
+                className="group flex h-12 flex-1 items-center justify-between rounded-md border border-border bg-background px-4 text-base font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
+              >
+                <span className="truncate">{n}</span>
+                {pending === toId(n) ? (
+                  <Loader2 className="ml-3 size-4 shrink-0 animate-spin text-muted-foreground" />
+                ) : (
+                  <ArrowRight className="ml-3 size-4 shrink-0 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => forget(n)}
+                disabled={pending !== null}
+                aria-label={`Quitar ${n} de la lista`}
+                className="flex h-12 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
+              >
+                <X className="size-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          enter(name)
+        }}
+        className="mt-6"
+      >
+        {showRoster && (
+          <div className="mb-3 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs uppercase tracking-wide text-muted-foreground">
+              otro nombre
+            </span>
+            <span className="h-px flex-1 bg-border" />
           </div>
-        </form>
-      </div>
+        )}
+
+        <label htmlFor="name" className="sr-only">
+          Tu nombre
+        </label>
+        <Input
+          id="name"
+          name="name"
+          type="text"
+          autoComplete="name"
+          autoFocus={hydrated && names.length === 0}
+          enterKeyHint="go"
+          placeholder="Tu nombre"
+          className="h-12 text-base"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <Button
+          ref={submitRef}
+          type="submit"
+          disabled={!trimmed || pending !== null}
+          className="mt-3 h-12 w-full text-base disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Ingresando…
+            </>
+          ) : (
+            "Ingresar"
+          )}
+        </Button>
+      </form>
     </div>
   )
-} 
+}
